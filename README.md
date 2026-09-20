@@ -8,6 +8,7 @@
 
 | 代号 | 名称 | 说明 |
 |---|---|---|
+| 总览 | 管理者快照（默认首页） | 七格 KPI + 拍板清单 + 今明后天会议 + 文档动态线 + 团队负荷 + 里程碑 + 风险与数据源健康 |
 | 周知 | 团队进展驾驶舱 | 六类信号一屏归拢 + 来源核验三态（核验中 / 已核验 / 存疑待纠错） |
 | 同频 | 跨源进展与协作舱 | 一周会议泳道图，撞车高亮 + 可合并建议 + 未共享灰位 |
 | 流转 | 团队审批动态全景 | OA 审批状态、卡点、时效、催办 |
@@ -23,16 +24,23 @@ npm run dev      # http://localhost:5173
 npm run build    # 生产构建（tsc -b && vite build）
 ```
 
-技术栈：Vite + React + TypeScript + Ant Design，主题走 editorial-motion 暖纸风（纸底 #F5F0EB、鼠尾草绿 #5E6E54、赭石 #A8621F）。
+技术栈：Vite + React + TypeScript + Ant Design（仅用 ConfigProvider 主题与 message 上下文，界面为自绘编辑型组件）。
+视觉规范：`ai-opc-hub-editorial-motion` 暖纸张编辑型门户 + 安静弹簧动效——纸底 `#F5F0EB`、主色鼠尾草绿 `#6B8F71`/`#49664F`、辅色赭石 `#D4A574`（文字用 `#7F4F1C` 保证对比度）、发丝线 `#DDD7CC`。
 
 ## 目录结构
 
 ```
 src/
-├── App.tsx        # 全部 7 屏 + Shell（约 425 行）
-├── index.css      # editorial-motion 设计 token 与自定义样式
+├── theme.ts      # 设计令牌：色板、缓动与时长、antd ConfigProvider 主题（唯一颜色出处）
+├── data.ts       # 虚构企业 mock 数据 + 全部派生口径（计数、撞车、负荷、按天分布）
+├── ui.tsx        # 原语与 hooks：useReveal / useLiquid / LiquidTabs / usePointerGlow / useSlashFocus / Dot / Kpi / Spark
+├── Overview.tsx  # 总览 · 管理者快照（高密度六模块）
+├── App.tsx       # 左侧栏外壳 + 周知 / 同频 / 流转 / 笔耕 / 设置
+├── index.css     # editorial-motion 组件样式、响应式与减少动效降级
 └── main.tsx
 ```
+
+改颜色/时长只动 `theme.ts` 与 `index.css` 的 `:root`；加指标先回 `data.ts` 派生，页面里不写死数字。
 
 ## 协作约定
 
@@ -50,10 +58,12 @@ src/
 
 ## 当前进度与待办
 
-已完成：设计链路（简报→旅程→故事→IA→视觉稿→工程→走查→验收）；7 屏可交互；生产构建通过；走查 11 项 + 验收 5 项重要偏差全部修复。
+已完成：设计链路（简报→旅程→故事→IA→视觉稿→工程→走查→验收）；**editorial-motion 规范落地到工程**（令牌化、彩色 Tag 换成两色 dot+文字、卡片改发丝线行、侧栏纵向液态指示层、进入视口/交错/指针柔光与减少动效降级）；新增**总览 · 管理者快照**默认首页；生产构建通过（bundle 由 1090 kB 降至 522 kB）；jsdom 实跑六屏与搜索/筛选/核验三态交互，无运行时报错。
+
+本轮同时修掉 3 处数据口径不一致：流转计数改为由 `approvals` 算出（待你 3 / 超时 2 / 通过 2，原先写死 2/1/3）；同频「可合并」文案改为与泳道数据一致（小赵、老周各周三 2 场，跨组周会 3 条记录）；文档动态严格对齐 `docUpdates` 7 条。
 
 **协作者可做（无需权限）**
-- UI 打磨：清 6 条 QA minor（字体补载、间距/圆角/字号收 scale、长标题省略、动效统一）
+- UI 打磨：剩余 QA minor（长标题省略、窄屏审批表列优先级）；字体已改为系统字体优先、不加载 webfont
 - 素材：6 张产品截图（驾驶舱 / 核验三态 / 泳道 / 流转 / 笔耕 / 周报）
 - 3 分钟演示视频脚本与录制
 - 文案与介绍页润色
