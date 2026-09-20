@@ -3,11 +3,12 @@ import type { ReactNode } from 'react'
 import { App as AntdApp, ConfigProvider } from 'antd'
 import Overview from './Overview'
 import { antdTheme } from './theme'
-import { APPROVAL_INSTANCE, DOCS, linkForMeeting, linkForTitle, SOURCE_LINKS, TODO_DETAIL, AITABLE_LEDGER } from './links'
+import { APPROVAL_INSTANCE, DOCS, linkForMeeting, linkForTitle, SOURCE_LINKS, TODO_DETAIL, AITABLE_LEDGER, AITABLE_Q3 } from './links'
 import {
   approvals, dataSources, dayDate, docUpdates, docsByDay, kindCount, lane, ledgerAmount, ledgerFieldCount,
-  ledgerRows, ledgerStatusClass, members,
+  ledgerRecordCount, ledgerRows, ledgerStatusClass, ledgerTableCount, members,
   meetingCount, meetingsByDay, overdueApprovals, passedApprovals, pendingApprovals,
+  planBlocked, planRows, planRunning, planStatusClass,
   signals, TODAY_INDEX, docCount, meetingEntries, days,
 } from './data'
 import type { Approval, Signal } from './data'
@@ -298,7 +299,7 @@ function Flow() {
       <PageHead
         eyebrow="流转 · 团队审批动态全景"
         title="团队 OA 全景"
-        lede="跨人的审批流转状态、卡点与时效聚合到一张表。按你可见与管理员权限范围取数，卡在你链上的排在最前。页尾「连表」子模块把每笔审批回流进钉钉 AI 表格台账。"
+        lede="跨人的审批流转状态、卡点与时效聚合到一张表。按你可见与管理员权限范围取数，卡在你链上的排在最前；台账沉淀见「连表 · 表格信息」。"
         pills={<>
           <Pill tone="warn">{`待你处理 ${pendingApprovals.length}`}</Pill>
           <Pill tone="warn">{`已超时 ${overdueApprovals.length}`}</Pill>
@@ -350,52 +351,119 @@ function Flow() {
           <p>列表按 OA 管理员权限聚合，仅覆盖你链上 + 权限范围内实例；跨组织审批显式标注为不可见，不绕过。</p>
         </Reveal>
       </div>
-
-      <h2 className="gg-sec-h">连表 · 审批台账<span className="gg-sec-n">回流钉钉 AI 表格 · 真实演示库</span></h2>
-      <p className="gg-sec-sub">每笔审批同步落到钉钉 AI 表格的结构化台账：可筛选、可统计，接入后可挂看板与自动化跟进。台账内容点开即真表核验。</p>
-      <Ledger />
     </div>
   )
 }
 
-/* ---------------- 连表 · 审批台账（流转子模块，连通钉钉 AI 表格） ---------------- */
-function Ledger() {
-  const money = (n: number) => `¥${n.toLocaleString('zh-CN')}`
-  const pendingMoney = pendingApprovals.filter((a) => a.amount)
+/* ---------------- 连表 · 表格信息（第六板块，连通钉钉 AI 表格） ---------------- */
+function AiTableCard(props: {
+  title: string; desc: string; url: string; sync: string
+  columns: string[]; rows: { key: string; cells: ReactNode[] }[]; foot: ReactNode
+}) {
   return (
     <Reveal className="gg-ledger" glow>
       <div className="gg-lg-head">
         <div>
-          <h3>审批台账（硅基罗盘演示）</h3>
-          <p>{`钉钉 AI 表格 · ${ledgerRows.length} 条记录 · ${ledgerFieldCount} 个字段（事项 / 发起人 / 节点 / 状态 / 滞留 / 金额 / 日期）`}</p>
+          <h3>{props.title}</h3>
+          <p>{props.desc}</p>
         </div>
         <div className="gg-lg-side">
-          <span className="gg-sync"><i aria-hidden="true" />已同步 · 今天 09:30</span>
-          <Btn tone="pri" href={AITABLE_LEDGER}>打开 AI 表格 ↗</Btn>
+          <span className="gg-sync"><i aria-hidden="true" />{props.sync}</span>
+          <Btn tone="pri" href={props.url}>打开 AI 表格 ↗</Btn>
         </div>
       </div>
       <div className="gg-scroll gg-lg-table">
         <table className="gg-table">
-          <caption className="gg-sr">回流到钉钉 AI 表格的审批台账预览</caption>
-          <thead><tr><th>审批事项</th><th>状态</th><th>时效</th><th>金额</th><th>发起日期</th></tr></thead>
+          <caption className="gg-sr">{`${props.title}预览`}</caption>
+          <thead><tr>{props.columns.map((c) => <th key={c}>{c}</th>)}</tr></thead>
           <tbody>
-            {ledgerRows.map((a) => (
-              <tr key={a.key}>
-                <td><div className="gg-t-title">{a.title}</div><div className="gg-t-sub">{`发起人 ${a.from} · ${a.node}`}</div></td>
-                <td><span className={`gg-dot ${ledgerStatusClass(a.status)}`}><i aria-hidden="true" />{a.status}</span></td>
-                <td className={`gg-sla${a.status === '已超时' ? ' over' : ''}`}>{a.sla}</td>
-                <td className="gg-t-sub">{a.amount ?? '—'}</td>
-                <td className="gg-sla">{a.date}</td>
-              </tr>
+            {props.rows.map((r) => (
+              <tr key={r.key}>{r.cells.map((c, i) => <td key={i}>{c}</td>)}</tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="gg-lg-foot">
-        <p>{`与上方清单一一对应：含金额审批 ${pendingMoney.length} 单，共 ${money(ledgerAmount)}，全部待你处理；打开即真表，可再按状态 / 金额筛选统计。`}</p>
-        <p className="gg-lg-bound">演示库建在你的钉钉个人空间「千问大赛测试用」文件夹内 · 成员仅你一人，企业内其他用户不可见 · 记录为职场有AI硅蜜模拟数据。</p>
-      </div>
+      <div className="gg-lg-foot">{props.foot}</div>
     </Reveal>
+  )
+}
+
+function Ledger() {
+  useReveal('ledger')
+  const money = (n: number) => `¥${n.toLocaleString('zh-CN')}`
+  const pendingMoney = pendingApprovals.filter((a) => a.amount)
+  return (
+    <div>
+      <PageHead
+        eyebrow="连表 · 团队数据表格与 AI 表格联动"
+        title="表格信息"
+        lede="散在群聊与会议里的口头进度，落成表才谈得上共享与统计。已连通两张真实演示表——审批台账承接流转数据，Q3 测试计划表挂住里程碑与到期日，点开即真表核验。"
+        pills={<>
+          <Pill tone="on">{`${ledgerTableCount} 张数据表 · ${ledgerRecordCount} 条记录`}</Pill>
+          <Pill>字段结构化 · 可筛选统计</Pill>
+          <Pill tone="warn">个人空间演示库 · 仅你可见</Pill>
+        </>}
+      />
+
+      <AiTableCard
+        title="审批台账"
+        desc={`OA 审批回流 · ${ledgerRows.length} 条记录 · ${ledgerFieldCount} 个字段（事项 / 发起人 / 节点 / 状态 / 滞留 / 金额 / 日期）`}
+        url={AITABLE_LEDGER} sync="已同步 · 今天 09:30"
+        columns={['审批事项', '状态', '时效', '金额', '发起日期']}
+        rows={ledgerRows.map((a) => ({
+          key: a.key,
+          cells: [
+            <><div className="gg-t-title">{a.title}</div><div className="gg-t-sub">{`发起人 ${a.from} · ${a.node}`}</div></>,
+            <span className={`gg-dot ${ledgerStatusClass(a.status)}`}><i aria-hidden="true" />{a.status}</span>,
+            <span className={`gg-sla${a.status === '已超时' ? ' over' : ''}`}>{a.sla}</span>,
+            <span className="gg-t-sub">{a.amount ?? '—'}</span>,
+            <span className="gg-sla">{a.date}</span>,
+          ],
+        }))}
+        foot={<>
+          <p>{`与流转 · OA 清单一一对应：含金额审批 ${pendingMoney.length} 单，共 ${money(ledgerAmount)}，全部待你处理；打开真表可再按状态 / 金额筛选统计。`}</p>
+          <p className="gg-lg-bound">表位置 · 「千问大赛测试用」文件夹（你的个人空间）· 成员仅你一人，企业内其他用户不可见。</p>
+        </>}
+      />
+
+      <AiTableCard
+        title="Q3 测试计划表"
+        desc={`${planRows.length} 条用例 · 5 个字段（用例名称 / 模块 / 负责人 / 状态 / 到期日）· 负责人与到期日已补齐`}
+        url={AITABLE_Q3} sync="已同步 · 今天 09:42"
+        columns={['用例名称', '状态', '模块', '负责人', '到期日']}
+        rows={planRows.map((p) => ({
+          key: p.key,
+          cells: [
+            <div className="gg-t-title">{p.name}</div>,
+            <span className={`gg-dot ${planStatusClass(p.status)}`}><i aria-hidden="true" />{p.status}</span>,
+            <span className="gg-t-sub">{p.module}</span>,
+            <span className="gg-t-sub">{p.owner}</span>,
+            <span className={`gg-sla${p.status === '阻塞' ? ' over' : ''}`}>{p.due}</span>,
+          ],
+        }))}
+        foot={<>
+          <p>{`里程碑「Q3 测试计划 80%」的 8 条记录就在这张表里；阻塞 ${planBlocked} 条正是依赖扩容预算的容量回归，卡点与流转 · OA 同源互证。`}</p>
+          <p className="gg-lg-bound">单选状态 + 日期字段已结构化，接入后可挂看板与自动提醒；记录为职场有AI硅蜜模拟数据。</p>
+        </>}
+      />
+
+      <div className="gg-statband">
+        <div><dt>数据表</dt><dd>{ledgerTableCount}<span>张</span></dd><p>审批台账 + Q3 测试计划</p></div>
+        <div><dt>记录</dt><dd>{ledgerRecordCount}<span>条</span></dd><p>{`台账 ${ledgerRows.length} · 计划 ${planRows.length}`}</p></div>
+        <div className="warn"><dt>待你处理金额</dt><dd>{pendingMoney.length}<span>单</span></dd><p>{`共 ${money(ledgerAmount)}`}</p></div>
+        <div><dt>计划进行中</dt><dd>{planRunning}<span>条</span></dd><p>{`阻塞 ${planBlocked} 条 · 卡在扩容预算`}</p></div>
+      </div>
+      <div className="gg-duo">
+        <Reveal className="gg-note ochre" glow>
+          <h3>为什么独立成板块</h3>
+          <p>表格是其余主线的结构化出口：审批沉淀成台账、测试计划挂住里程碑。单列板块后，记录数、字段、可见性一屏说清，口径只维护一处。</p>
+        </Reveal>
+        <Reveal className="gg-note">
+          <h3>权限与边界</h3>
+          <p>演示库建在<b>你的个人空间「千问大赛测试用」文件夹</b>内，成员仅你一人，企业内其他钉钉用户不可见；表内内容为虚构企业模拟数据，点开真表即可核验。</p>
+        </Reveal>
+      </div>
+    </div>
   )
 }
 
@@ -496,7 +564,8 @@ const NAV: NavItem[] = [
   { key: 'sync', label: '同频 · 协作', num: '03', note: `${meetingCount}` },
   { key: 'flow', label: '流转 · OA', num: '04', note: `${pendingApprovals.length}` },
   { key: 'docs', label: '笔耕 · 文档', num: '05', note: `${docCount}` },
-  { key: 'settings', label: '边界与规范', num: '06' },
+  { key: 'ledger', label: '连表 · 表格信息', num: '06', note: `${ledgerRecordCount}` },
+  { key: 'settings', label: '边界与规范', num: '07' },
 ]
 
 function SideNav({ active, onPick }: { active: string; onPick: (k: string) => void }) {
@@ -525,6 +594,7 @@ function Shell() {
     sync: <Sync />,
     flow: <Flow />,
     docs: <Docs />,
+    ledger: <Ledger />,
     settings: <Settings />,
   }
   return (
@@ -535,7 +605,7 @@ function Shell() {
         </button>
         <div className="gg-brand-sub">钉钉聚合 · 一站式工作台<br />管理者视角</div>
         <div className="gg-side-hr" />
-        <div className="gg-side-cap">四条主线</div>
+        <div className="gg-side-cap">五条主线</div>
         <SideNav active={key} onPick={setKey} />
         <div className="gg-side-foot">
           <div className="gg-side-user"><Ava name="陈" />陈 · 团队负责人</div>

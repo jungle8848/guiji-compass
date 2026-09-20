@@ -27,8 +27,10 @@ export const MINUTES = {
   录制: 'https://shanji.dingtalk.com/app/transcribes/76327569643435363038383034305f363733353735363931315f39',
 } as const
 
-/** 连表子模块：真实钉钉 AI 表格演示库，建于「千问大赛测试用」文件夹（个人空间 · 仅本人可见） */
-export const AITABLE_LEDGER = NODE('20eMKjyp81R7pXXmsrKEz9DNWxAZB1Gv')
+/** 连表板块：真实钉钉 AI 表格演示库（两张表），建于「千问大赛测试用」文件夹（个人空间 · 仅本人可见） */
+const AITABLE_OPEN = NODE('20eMKjyp81R7pXXmsrKEz9DNWxAZB1Gv')
+export const AITABLE_LEDGER = `${AITABLE_OPEN}?entrance=data&sheetId=lz3pSvP`
+export const AITABLE_Q3 = `${AITABLE_OPEN}?entrance=data&sheetId=hERWDMS`
 
 /** 真实审批实例（dws oa approval list-submitted 返回，RUNNING 状态） */
 export const APPROVAL_INSTANCE
@@ -67,6 +69,6 @@ export const SOURCE_LINKS: Record<string, string> = {
   '钉钉文档 / 云盘': DOCS.演示文件夹,
   'AI 听记（会议纪要）': MINUTES.评审,
   'OA 审批': APPROVAL_INSTANCE,
-  '钉钉 AI 表格': AITABLE_LEDGER,
+  '钉钉 AI 表格': AITABLE_OPEN,
   '待办 / 日程 / 多维表': TODO_DETAIL,
 }

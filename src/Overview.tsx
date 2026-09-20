@@ -19,7 +19,7 @@ export default function Overview({ go }: { go: (k: string) => void }) {
       <PageHead
         eyebrow="总览 · 管理者视角"
         title="本周经营与团队快照"
-        lede="四条主线的精华聚到一屏：谁在推进、什么卡在你这里、今明后天怎么排、留痕是否跟上。每个数字都可点进对应主线核验出处。"
+        lede="各条主线的精华聚到一屏：谁在推进、什么卡在你这里、今明后天怎么排、留痕与表格是否跟上。每个数字都可点进对应主线核验出处。"
         pills={<>
           <Pill tone="on">本周 09/07 – 09/11</Pill>
           <Pill>{`基准日 今天 ${dayDate(TODAY_INDEX)} 周三`}</Pill>

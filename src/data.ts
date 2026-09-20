@@ -83,6 +83,28 @@ export const ledgerFieldCount = 7
 export const ledgerStatusClass = (s: Approval['status']) =>
   s === '已通过' ? 'k-sage' : s === '已超时' ? 'k-ochre' : 'k-ochre-o'
 
+/** Q3 测试计划：与 Base 内「Q3 测试计划表」8 条记录同源，负责人与到期日已补齐 */
+export type PlanRow = {
+  key: string; name: string; module: string; owner: string
+  status: '未开始' | '进行中' | '已完成' | '阻塞'; due: string
+}
+export const planRows: PlanRow[] = [
+  { key: 'p1', name: '登录重构 · 鉴权接口回归', module: '账号', owner: '王姐', status: '进行中', due: '09/11' },
+  { key: 'p2', name: '迁移用例补充 · 账号域', module: '账号', owner: '李工', status: '已完成', due: '09/10' },
+  { key: 'p3', name: '搜索性能 · P95 压测', module: '搜索', owner: '小赵', status: '进行中', due: '09/12' },
+  { key: 'p4', name: '推荐召回 · AB 埋点校验', module: '推荐', owner: '小陈', status: '未开始', due: '09/18' },
+  { key: 'p5', name: '灰度发布 · 冒烟用例', module: '发布', owner: '王姐', status: '未开始', due: '09/15' },
+  { key: 'p6', name: '扩容 · 容量回归', module: '运维', owner: '老周', status: '阻塞', due: '09/16' },
+  { key: 'p7', name: '值班告警 · 处置演练', module: '值班', owner: '小吴', status: '进行中', due: '09/10' },
+  { key: 'p8', name: '测试机到货 · 台架验证', module: '测试环境', owner: '王姐', status: '未开始', due: '09/19' },
+]
+export const planStatusClass = (s: PlanRow['status']) =>
+  s === '已完成' ? 'k-sage' : s === '进行中' ? 'k-sage-o' : s === '阻塞' ? 'k-ochre' : 'k-ink-o'
+export const planRunning = planRows.filter((p) => p.status === '进行中').length
+export const planBlocked = planRows.filter((p) => p.status === '阻塞').length
+export const ledgerTableCount = 2
+export const ledgerRecordCount = ledgerRows.length + planRows.length
+
 /* ---------- 派生口径：所有计数由数据算出，不再手写 ---------- */
 export const kindCount = new Set(signals.map((s) => s.kind)).size
 export const pendingApprovals = approvals.filter((a) => a.node.includes('待你'))
