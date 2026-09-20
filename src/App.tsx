@@ -414,10 +414,10 @@ function Ledger() {
           key: a.key,
           cells: [
             <><div className="gg-t-title">{a.title}</div><div className="gg-t-sub">{`发起人 ${a.from} · ${a.node}`}</div></>,
-            <span className={`gg-dot ${ledgerStatusClass(a.status)}`}><i aria-hidden="true" />{a.status}</span>,
-            <span className={`gg-sla${a.status === '已超时' ? ' over' : ''}`}>{a.sla}</span>,
-            <span className="gg-t-sub">{a.amount ?? '—'}</span>,
-            <span className="gg-sla">{a.date}</span>,
+            <span key="st" className={`gg-dot ${ledgerStatusClass(a.status)}`}><i aria-hidden="true" />{a.status}</span>,
+            <span key="sla" className={`gg-sla${a.status === '已超时' ? ' over' : ''}`}>{a.sla}</span>,
+            <span key="amt" className="gg-t-sub">{a.amount ?? '—'}</span>,
+            <span key="date" className="gg-sla">{a.date}</span>,
           ],
         }))}
         foot={<>
@@ -434,11 +434,11 @@ function Ledger() {
         rows={planRows.map((p) => ({
           key: p.key,
           cells: [
-            <div className="gg-t-title">{p.name}</div>,
-            <span className={`gg-dot ${planStatusClass(p.status)}`}><i aria-hidden="true" />{p.status}</span>,
-            <span className="gg-t-sub">{p.module}</span>,
-            <span className="gg-t-sub">{p.owner}</span>,
-            <span className={`gg-sla${p.status === '阻塞' ? ' over' : ''}`}>{p.due}</span>,
+            <div key="name" className="gg-t-title">{p.name}</div>,
+            <span key="st" className={`gg-dot ${planStatusClass(p.status)}`}><i aria-hidden="true" />{p.status}</span>,
+            <span key="mod" className="gg-t-sub">{p.module}</span>,
+            <span key="own" className="gg-t-sub">{p.owner}</span>,
+            <span key="due" className={`gg-sla${p.status === '阻塞' ? ' over' : ''}`}>{p.due}</span>,
           ],
         }))}
         foot={<>
